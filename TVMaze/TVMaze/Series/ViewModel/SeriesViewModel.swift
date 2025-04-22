@@ -24,6 +24,7 @@ final class SeriesViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var page: Int = 0
     private var hasMoreData: Bool = true
+    private var originalSerielist: [SerieDataView] = []
     
     // MARK: - Internal Init
     init(api: SeriesAPIProtocol = SeriesAPI()) {
@@ -33,6 +34,17 @@ final class SeriesViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var seriesList: [SerieDataView] = []
     @Published var viewState: ViewState = .idle
+    @Published var searchText: String = "" {
+        didSet {
+            if searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                seriesList = originalSerielist
+            } else {
+                seriesList = originalSerielist.filter {
+                    $0.title.lowercased().contains(searchText.lowercased())
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Internal Functions
@@ -64,6 +76,7 @@ extension SeriesViewModel {
                     let serieDataView = SerieDataView(title: serie.name, language: serie.language, genres: serie.genres.joined(separator: ", "), image: self?.getImageURL(from: serie))
                     self?.seriesList.append(serieDataView)
                 }
+                self?.originalSerielist = self?.seriesList ?? []
             }
             .store(in: &cancellables)
     }

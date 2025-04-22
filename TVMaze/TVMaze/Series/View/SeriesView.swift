@@ -36,7 +36,7 @@ struct SeriesView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .padding(.top)
-
+                    
                 case .loading:
                     VStack {
                         Spacer()
@@ -50,6 +50,11 @@ struct SeriesView: View {
                         Spacer()
                     }
                 case .loaded:
+                    TextField("Search series...", text: $viewModel.searchText)
+                        .padding(10)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .padding()
                     ScrollView {
                         LazyVStack {
                             ForEach(viewModel.seriesList, id: \.self) { serie in
@@ -66,10 +71,18 @@ struct SeriesView: View {
                         }
                         .padding()
                     }
+                    .simultaneousGesture(DragGesture().onChanged({ _ in
+                        UIApplication.shared.hideKeyboard()
+                    }))
                 }
             }
+            .onTapGesture {
+                UIApplication.shared.hideKeyboard()
+            }
             .onAppear(perform: {
-                viewModel.loadSeries()
+                if viewModel.seriesList.isEmpty {
+                    viewModel.loadSeries()
+                }
             })
             .navigationTitle("Series")
         }
