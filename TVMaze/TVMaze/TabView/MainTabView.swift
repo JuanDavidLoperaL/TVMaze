@@ -20,7 +20,7 @@ struct MainTabView: View {
                 }
                 .tag(TabOptions.characters)
             // This will be replaced with Series View
-            ContentView()
+            SeriesView()
                 .tabItem {
                     Label("Series", systemImage: "movieclapper.fill")
                 }
