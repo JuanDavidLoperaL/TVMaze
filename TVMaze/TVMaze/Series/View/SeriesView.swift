@@ -33,6 +33,9 @@ struct SeriesView: View {
                 }
                 .padding()
             }
+            .onAppear(perform: {
+                viewModel.getSeries()
+            })
             .navigationTitle("Series")
         }
     }
