@@ -6,11 +6,10 @@
 //
 
 import Foundation
-import UIKit
 
 struct SerieDataView: Hashable {
     var title: String
     var language: String
     var genres: String
-    var image: UIImage
+    var image: URL?
 }

@@ -11,9 +11,19 @@ import UIKit
 
 final class SeriesViewModel: ObservableObject {
     
+    // MARK: - Enums
+    enum ViewState {
+        case loading
+        case loaded
+        case error
+        case idle
+    }
+    
     // MARK: - Private Properties
     private let api: SeriesAPIProtocol
     private var cancellables = Set<AnyCancellable>()
+    private var page: Int = 0
+    private var hasMoreData: Bool = true
     
     // MARK: - Internal Init
     init(api: SeriesAPIProtocol = SeriesAPI()) {
@@ -22,26 +32,51 @@ final class SeriesViewModel: ObservableObject {
     
     // MARK: - Published Properties
     @Published var seriesList: [SerieDataView] = []
+    @Published var viewState: ViewState = .idle
 }
 
 // MARK: - Internal Functions
 extension SeriesViewModel {
-    func getSeries() {
-        api.getSerieList(page: 0)
-            .receive(on: DispatchQueue.main)
-            .sink { complete in
-            switch complete {
-            case .finished:
-                print("Success")
-            case .failure(let error):
-                print("Error")
-            }
-        } receiveValue: { series in
-            series.forEach { [weak self] serie in
-                let serieDataView = SerieDataView(title: serie.name, language: serie.language, genres: serie.genres.joined(separator: ", "), image: UIImage())
-                self?.seriesList.append(serieDataView)
-            }
+    func loadSeries() {
+        guard hasMoreData else {
+            return
         }
-        .store(in: &cancellables)
+        if viewState == .loading {
+            return
+        }
+        viewState = .loading
+        api.getSerieList(page: page)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] complete in
+                switch complete {
+                case .finished:
+                    print("Success")
+                case .failure:
+                    self?.viewState = .error
+                }
+            } receiveValue: { [weak self] series in
+                self?.viewState = .loaded
+                self?.page += 1
+                if series.isEmpty {
+                    self?.hasMoreData = false
+                }
+                series.forEach { serie in
+                    let serieDataView = SerieDataView(title: serie.name, language: serie.language, genres: serie.genres.joined(separator: ", "), image: self?.getImageURL(from: serie))
+                    self?.seriesList.append(serieDataView)
+                }
+            }
+            .store(in: &cancellables)
+    }
+}
+
+// MARK: - Private Functions
+private extension SeriesViewModel {
+    private func getImageURL(from serie: Serie) -> URL? {
+        if let imgURL = URL(string: serie.image.medium) {
+            return imgURL
+        } else if let imgURL = URL(string: serie.image.original) {
+            return imgURL
+        }
+        return URL(string: "http://www.placeholder.com")
     }
 }
