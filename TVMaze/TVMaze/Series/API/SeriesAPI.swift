@@ -16,11 +16,16 @@ enum NetworkError: Error {
 }
 protocol SeriesAPIProtocol: AnyObject {
     func getSerieList(page: Int) -> AnyPublisher<[Serie], NetworkError>
+    func getSerieBy(name: String) -> AnyPublisher<[SerieByNameResponse], NetworkError>
 }
 
 final class SeriesAPI: SeriesAPIProtocol {
     func getSerieList(page: Int) -> AnyPublisher<[Serie], NetworkError> {
-        guard let url = URL(string: "https://api.tvmaze.com/shows?page=\(page)") else {
+        var urlComponent = URLComponents(string: "https://api.tvmaze.com/shows")
+        urlComponent?.queryItems = [
+            URLQueryItem(name: "page", value: "\(page)")
+        ]
+        guard let url = urlComponent?.url else {
             return Fail(error: NetworkError.invalidURL).eraseToAnyPublisher()
         }
         return URLSession.shared.dataTaskPublisher(for: url)
@@ -37,7 +42,34 @@ final class SeriesAPI: SeriesAPIProtocol {
                 } else if error is URLError {
                     return .serverNotAvailable
                 } else {
-                    
+                    return .invalidCasting
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+    
+    func getSerieBy(name: String) -> AnyPublisher<[SerieByNameResponse], NetworkError> {
+        var urlComponent = URLComponents(string: "https://api.tvmaze.com/search/shows")
+        urlComponent?.queryItems = [
+            URLQueryItem(name: "q", value: name)
+        ]
+        guard let url = urlComponent?.url else {
+            return Fail(error: NetworkError.invalidURL).eraseToAnyPublisher()
+        }
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .tryMap { data, response in
+                guard let httpResponse: HTTPURLResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                    throw NetworkError.errorInRequest
+                }
+                return data
+            }
+            .decode(type: [SerieByNameResponse].self, decoder: JSONDecoder())
+            .mapError { error in
+                if let networkError = error as? NetworkError {
+                    return networkError
+                } else if error is URLError {
+                    return .serverNotAvailable
+                } else {
                     return .invalidCasting
                 }
             }
