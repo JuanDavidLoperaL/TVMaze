@@ -2,7 +2,7 @@
 //  SeriesView.swift
 //  TVMaze
 //
-//  Created by Juan david Lopera lopez on 21/04/25. 
+//  Created by Juan david Lopera lopez on 21/04/25.
 //
 
 import Kingfisher
@@ -10,7 +10,8 @@ import SwiftUI
 
 struct SeriesView: View {
     
-    @ObservedObject var viewModel: SeriesViewModel = SeriesViewModel()
+    @StateObject var viewModel: SeriesViewModel = SeriesViewModel()
+
     
     var body: some View {
         NavigationStack {
@@ -36,7 +37,6 @@ struct SeriesView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .padding(.top)
-                    
                 case .loading:
                     VStack {
                         Spacer()
@@ -55,18 +55,22 @@ struct SeriesView: View {
                         .background(Color(.systemGray6))
                         .cornerRadius(8)
                         .padding()
-                    ScrollView {
+                    ScrollView(.vertical, showsIndicators: false) {
                         LazyVStack {
-                            ForEach(viewModel.seriesList, id: \.self) { serie in
-                                // Empty View will be replaced with DetailSerieView
-                                NavigationLink(destination: EmptyView()) {
-                                    HStack {
-                                        serieImage(url: serie.image)
-                                        displayPrincipalInfo(serie: serie)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.bottom)
+                            ForEach(viewModel.seriesList.indices, id: \.self) { index in
+                                let serie = viewModel.seriesList[index]
+                                NavigationLink(destination: SerieDetailView(viewModel: SerieDetailViewModel(serieDataView: serie))) {
+                                    SerieRowView(serie: serie)
                                 }
+                                .onAppear {
+                                    if index >= viewModel.seriesList.count - 5 {
+                                        viewModel.loadSeries()
+                                    }
+                                }
+                            }
+                            if viewModel.viewState == .loading && viewModel.hasMoreData {
+                                ProgressView("Loading more...")
+                                    .padding()
                             }
                         }
                         .padding()
@@ -85,50 +89,6 @@ struct SeriesView: View {
                 }
             })
             .navigationTitle("Series")
-        }
-    }
-    
-    func serieImage(url: URL?) -> some View {
-        KFImage(url)
-            .resizable()
-            .placeholder {
-                Image("popcornplaceHolder")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 100, height: 160)
-            }
-            .cancelOnDisappear(true)
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 100, height: 160)
-            .cornerRadius(8)
-    }
-    
-    func displayPrincipalInfo(serie: SerieDataView) -> some View {
-        VStack(alignment: .leading) {
-            Spacer()
-            VStack(alignment: .leading) {
-                Text("Title")
-                    .modifier(TitleStyle())
-                Text(serie.title)
-                    .modifier(FeaturedTitleStyle())
-            }
-            .padding(.bottom, 1)
-            
-            VStack(alignment: .leading) {
-                Text("Language")
-                    .modifier(TitleStyle())
-                Text(serie.language)
-                    .modifier(FeaturedTitleStyle())
-            }
-            .padding(.bottom, 1)
-            
-            VStack(alignment: .leading) {
-                Text("Genres")
-                    .modifier(TitleStyle())
-                Text(serie.genres)
-                    .modifier(FeaturedTitleStyle())
-            }
-            Spacer()
         }
     }
 }
