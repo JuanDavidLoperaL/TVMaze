@@ -63,7 +63,7 @@ struct SeriesView: View {
                                     SerieRowView(serie: serie)
                                 }
                                 .onAppear {
-                                    if index >= viewModel.seriesList.count - 5 {
+                                    if index >= viewModel.seriesList.count - 20 {
                                         viewModel.loadSeries()
                                     }
                                 }
