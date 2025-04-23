@@ -8,8 +8,12 @@
 import Foundation
 
 struct SerieDataView: Hashable {
+    var id: Int
     var title: String
     var language: String
     var genres: String
+    var scheduleDays: String
+    var scheduleTime: String
+    var summary: String
     var image: URL?
 }

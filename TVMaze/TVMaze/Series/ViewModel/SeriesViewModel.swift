@@ -23,8 +23,8 @@ final class SeriesViewModel: ObservableObject {
     private let api: SeriesAPIProtocol
     private var cancellables = Set<AnyCancellable>()
     private var page: Int = 0
-    private var hasMoreData: Bool = true
     private var originalSerielist: [SerieDataView] = []
+    private(set) var hasMoreData: Bool = true
     
     // MARK: - Internal Init
     init(api: SeriesAPIProtocol = SeriesAPI()) {
@@ -73,7 +73,14 @@ extension SeriesViewModel {
                     self?.hasMoreData = false
                 }
                 series.forEach { serie in
-                    let serieDataView = SerieDataView(title: serie.name, language: serie.language, genres: serie.genres.joined(separator: ", "), image: self?.getImageURL(from: serie))
+                    let serieDataView = SerieDataView(id: serie.id,
+                                                      title: serie.name,
+                                                      language: serie.language,
+                                                      genres: serie.genres.joined(separator: ", "),
+                                                      scheduleDays: serie.schedule.days.joined(separator: ", "),
+                                                      scheduleTime: serie.schedule.time,
+                                                      summary: serie.summary,
+                                                      image: self?.getImageURL(from: serie))
                     self?.seriesList.append(serieDataView)
                 }
                 self?.originalSerielist = self?.seriesList ?? []
