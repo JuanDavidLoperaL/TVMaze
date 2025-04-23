@@ -14,5 +14,5 @@ struct Serie: Decodable {
     var genres: [String]
     var summary: String
     var schedule: SerieSchedule
-    var image: SerieImage
+    var image: SerieImage?
 }
