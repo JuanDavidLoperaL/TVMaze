@@ -1,20 +1,24 @@
 //
-//  SerieDetailAPI.swift
+//  CharacterDetailAPI.swift
 //  TVMaze
 //
-//  Created by Juan david Lopera lopez on 22/04/25.
+//  Created by Juan david Lopera lopez on 24/04/25.
 //
 
 import Combine
 import Foundation
 
-protocol SerieDetailAPIProtocol: AnyObject {
-    func loadEpisodes(id: Int) -> AnyPublisher<[SerieEpisodes], NetworkError>
+protocol CharacterDetailAPIProtocol: AnyObject {
+    func loadEpisodes(characterId: Int) -> AnyPublisher<[CharacterEpisodeResponse], NetworkError>
 }
 
-final class SerieDetailAPI: SerieDetailAPIProtocol {
-    func loadEpisodes(id: Int) -> AnyPublisher<[SerieEpisodes], NetworkError> {
-        guard let url = URL(string: "https://api.tvmaze.com/shows/\(id)/episodes") else {
+final class CharacterDetailAPI: CharacterDetailAPIProtocol {
+    func loadEpisodes(characterId: Int) -> AnyPublisher<[CharacterEpisodeResponse], NetworkError> {
+        var urlComponent = URLComponents(string: "https://api.tvmaze.com/people/\(characterId)/castcredits")
+        urlComponent?.queryItems = [
+            URLQueryItem(name: "embed", value: "show")
+        ]
+        guard let url = urlComponent?.url else {
             return Fail(error: NetworkError.invalidURL).eraseToAnyPublisher()
         }
         return URLSession.shared.dataTaskPublisher(for: url)
@@ -24,7 +28,7 @@ final class SerieDetailAPI: SerieDetailAPIProtocol {
                 }
                 return data
             }
-            .decode(type: [SerieEpisodes].self, decoder: JSONDecoder())
+            .decode(type: [CharacterEpisodeResponse].self, decoder: JSONDecoder())
             .mapError{ error in
                 if let networkError = error as? NetworkError {
                     return networkError

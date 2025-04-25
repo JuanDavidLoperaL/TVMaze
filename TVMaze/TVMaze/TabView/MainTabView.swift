@@ -14,7 +14,7 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             // This will be replaced with Characters View
-            SettingsView()
+            CharacterView()
                 .tabItem {
                     Label("Characters", systemImage: "person.fill")
                 }
