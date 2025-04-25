@@ -9,9 +9,12 @@ import Foundation
 import SwiftUI
 
 struct FeaturedTitleStyle: ViewModifier {
+    
+    var fontSize: CGFloat = 16.0
+    
     func body(content: Content) -> some View {
         content
-            .font(.system(size: 16, weight: .bold))
+            .font(.system(size: fontSize, weight: .bold))
             .foregroundStyle(.black)
     }
 }

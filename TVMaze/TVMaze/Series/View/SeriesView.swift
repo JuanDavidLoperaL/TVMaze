@@ -79,7 +79,7 @@ struct SeriesView: View {
                         UIApplication.shared.hideKeyboard()
                     }))
                 }
-            }
+            }.padding()
             .onTapGesture {
                 UIApplication.shared.hideKeyboard()
             }
