@@ -14,19 +14,19 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             // This will be replaced with Characters View
-            ContentView()
+            SettingsView()
                 .tabItem {
                     Label("Characters", systemImage: "person.fill")
                 }
                 .tag(TabOptions.characters)
-            // This will be replaced with Series View
+
             SeriesView()
                 .tabItem {
                     Label("Series", systemImage: "movieclapper.fill")
                 }
                 .tag(TabOptions.series)
-            // This will be replaced with Settings View
-            ContentView()
+            
+            SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
