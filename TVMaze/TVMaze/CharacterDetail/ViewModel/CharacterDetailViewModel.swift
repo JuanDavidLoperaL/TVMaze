@@ -5,12 +5,15 @@
 //  Created by Juan david Lopera lopez on 24/04/25.
 //
 
+import Combine
 import Foundation
 
 final class CharacterDetailViewModel: ObservableObject {
     
     private let api: CharacterDetailAPIProtocol
     private let characterViewData: CharacterViewData
+    private var cancellables = Set<AnyCancellable>()
+    private(set) var episodeSaved: CharacterEpisodeViewData?
     
     init(api: CharacterDetailAPIProtocol = CharacterDetailAPI(), characterViewData: CharacterViewData) {
         self.api = api
@@ -31,7 +34,7 @@ final class CharacterDetailViewModel: ObservableObject {
 extension CharacterDetailViewModel {
     func loadEpisodes() {
         api.loadEpisodes(characterId: characterViewData.id)
-            .subscribe(on: DispatchQueue.main)
+            .receive(on: DispatchQueue.main)
             .sink { completion in
                 switch completion {
                 case .finished:
@@ -41,19 +44,24 @@ extension CharacterDetailViewModel {
                 }
             } receiveValue: { [weak self] characterEpisodes in
                 self?.episodes = characterEpisodes.map { characterEpisodeResponse in
-                    CharacterEpisodeViewData(name: characterEpisodeResponse.embedded.name, image: self?.getImageURL(from: characterEpisodeResponse), link: URL(string: characterEpisodeResponse.embedded.url) ?? URL(fileURLWithPath: ""))
+                    let show = characterEpisodeResponse.embedded.show
+                    return CharacterEpisodeViewData(name: show.name, image: self?.getImageURL(from: characterEpisodeResponse), link: URL(string: show.url) ?? URL(fileURLWithPath: ""))
                 }
-                print(characterEpisodes)
             }
+            .store(in: &cancellables)
+    }
+    
+    func episodeSelected(episode: CharacterEpisodeViewData) {
+        episodeSaved = episode
     }
 }
 
 // MARK: - Private Functions
 private extension CharacterDetailViewModel {
     private func getImageURL(from episode: CharacterEpisodeResponse) -> URL? {
-        if let imgURL = URL(string: episode.embedded.image?.medium ?? "") {
+        if let imgURL = URL(string: episode.embedded.show.image?.medium ?? "") {
             return imgURL
-        } else if let imgURL = URL(string: episode.embedded.image?.original ?? "") {
+        } else if let imgURL = URL(string: episode.embedded.show.image?.original ?? "") {
             return imgURL
         }
         return URL(string: "http://www.placeholder.com")

@@ -8,7 +8,7 @@
 import Foundation
 
 struct CharacterEpisodeResponse: Decodable {
-    var embedded: CharacterEpisodeDetailResponse
+    var embedded: EmbeddedResponse
     
     enum CodingKeys: String, CodingKey {
         case embedded = "_embedded"
