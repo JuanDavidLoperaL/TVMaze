@@ -9,8 +9,7 @@ import SwiftUI
 
 struct ActivePinSetupView: View {
     
-    @AppStorage("storePin") private var storePin: String = ""
-    @AppStorage("isPinEnabled") private var isPinEnabled: Bool = false
+    @Binding var isPinEnable: Bool
     @Environment(\.dismiss) var dismiss
     
     @StateObject var viewModel: ActivePinViewModel = ActivePinViewModel()
@@ -20,7 +19,7 @@ struct ActivePinSetupView: View {
             HStack {
                 Spacer()
                 Button {
-                    isPinEnabled = storePin.isEmpty ? false : true
+                    isPinEnable = viewModel.isPinEnable()
                     dismiss()
                 } label: {
                     Text("Close")
@@ -36,11 +35,9 @@ struct ActivePinSetupView: View {
                 .padding(.top)
             Button {
                 if viewModel.validatePin() {
+                    viewModel.savePin()
                     viewModel.showAlert = false
-                    storePin = viewModel.pin
-                    isPinEnabled = true
                     dismiss()
-                    
                 } else {
                     viewModel.showAlert = true
                 }
@@ -66,5 +63,5 @@ struct ActivePinSetupView: View {
 }
 
 #Preview {
-    ActivePinSetupView()
+    ActivePinSetupView(isPinEnable: .constant(false))
 }

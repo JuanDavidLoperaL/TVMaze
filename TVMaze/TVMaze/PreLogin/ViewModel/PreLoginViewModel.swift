@@ -13,6 +13,7 @@ final class PreLoginViewModel: ObservableObject {
     enum StateView {
         case pin
         case biometric
+        case preparating
     }
     
     // MARK: - Private Properties
@@ -30,11 +31,11 @@ final class PreLoginViewModel: ObservableObject {
     }
     
     // MARK: - Wrapper Properties
-    @Published var viewState: StateView = .pin
+    @Published var viewState: StateView = .preparating
     @Published var pin: String = ""
     @Published var showAlert: Bool = false
     @Published var isValidationSuccessful: Bool = false
-    @AppStorage("storePin") private var storePin: String = ""
+    private var storedPin: String = UserDefaults.standard.string(forKey: "storedPin") ?? ""
     
     var buttonTitle: String {
         if isPinEnable {
@@ -61,12 +62,23 @@ extension PreLoginViewModel {
             validateBiometric(completionHandler: completionHandler)
         }
     }
+    
+    func preparePreLogin() {
+        if isPinEnable {
+            viewState = .pin
+            return
+        }
+        if isBiometricEnable {
+            viewState = .biometric
+            return
+        }
+    }
 }
 
 // MARK: - Private Function
 private extension PreLoginViewModel {
     func validatePIN() {
-        guard storePin == pin else {
+        guard storedPin == pin else {
             showAlert = true
             return
         }
@@ -79,17 +91,6 @@ private extension PreLoginViewModel {
             self?.showAlert = !isSuccess
             self?.isValidationSuccessful = isSuccess
             completionHandler()
-        }
-    }
-    
-    func preparePreLogin() {
-        if isPinEnable {
-            viewState = .pin
-            return
-        }
-        if isBiometricEnable {
-            viewState = .biometric
-            return
         }
     }
 }

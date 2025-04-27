@@ -15,6 +15,8 @@ struct PreLoginView: View {
     var body: some View {
         VStack {
             switch viewModel.viewState {
+            case .preparating:
+                Text("Building App waiting please...")
             case .biometric:
                 Text("Authentication Required")
                     .font(.title)
@@ -37,8 +39,12 @@ struct PreLoginView: View {
                 }
             }
         }
+        .padding()
         .alert("Authentication Failed", isPresented: $viewModel.showAlert) {
             Button("OK", role: .cancel) {}
+        }
+        .onAppear {
+            viewModel.preparePreLogin()
         }
     }
 }

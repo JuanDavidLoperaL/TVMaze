@@ -10,28 +10,27 @@ import SwiftUI
 @main
 struct TVMazeApp: App {
     
-//    @AppStorage("isBiometricEnabled") private var isBiometricEnabled: Bool = false
-//    @AppStorage("isPinEnabled") private var isPinEnabled: Bool = false
-//    @State private var isLoggedIn = false
+    private var isBiometricEnabled: Bool = UserDefaults.standard.bool(forKey: "isBiometricEnabled")
+    private var isPinEnabled: Bool = UserDefaults.standard.bool(forKey: "isPinEnabled")
+    @State private var isLoggedIn = false
     
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                MainTabView()
-//                if isBiometricEnabled || isPinEnabled {
-//                    if isLoggedIn {
-//                        MainTabView()
-//                    } else {
-//                        PreLoginView(
-//                            viewModel: PreLoginViewModel(
-//                            isPinEnable: isPinEnabled,
-//                            isBiometricEnable: isBiometricEnabled),
-//                            isLoggedIn: $isLoggedIn
-//                        )
-//                    }
-//                } else {
-//                    MainTabView()
-//                }
+                if isBiometricEnabled || isPinEnabled {
+                    if isLoggedIn {
+                        MainTabView()
+                    } else {
+                        PreLoginView(
+                            viewModel: PreLoginViewModel(
+                            isPinEnable: isPinEnabled,
+                            isBiometricEnable: isBiometricEnabled),
+                            isLoggedIn: $isLoggedIn
+                        )
+                    }
+                } else {
+                    MainTabView()
+                }
             }
         }
     }
