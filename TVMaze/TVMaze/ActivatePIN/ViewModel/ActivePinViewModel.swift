@@ -25,4 +25,14 @@ final class ActivePinViewModel: ObservableObject {
         let regex = #"^\d{5}$"#
         return pin.range(of: regex, options: .regularExpression) != nil
     }
+    
+    func isPinEnable() -> Bool {
+        let storedPin: String = UserDefaults.standard.string(forKey: "storedPin") ?? String()
+        return !storedPin.isEmpty
+    }
+    
+    func savePin() {
+        UserDefaults.standard.set(pin, forKey: "storedPin")
+    }
+    
 }
