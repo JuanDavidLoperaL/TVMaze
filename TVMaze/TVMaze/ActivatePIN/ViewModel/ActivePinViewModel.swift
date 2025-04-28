@@ -34,5 +34,4 @@ final class ActivePinViewModel: ObservableObject {
     func savePin() {
         UserDefaults.standard.set(pin, forKey: "storedPin")
     }
-    
 }
