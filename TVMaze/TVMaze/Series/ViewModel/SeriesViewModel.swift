@@ -130,8 +130,11 @@ extension SeriesViewModel {
     }
     
     func imgName(index: Int) -> String {
-        let isFavorite = seriesList[index].isFavorite
-        return isFavorite ? "fav.fill" : "fav"
+        let favDict: [String: Data] = userDefaults.dictionary(forKey: key) as? [String: Data] ?? [:]
+        if favDict.isEmpty || (favDict["\(seriesList[index].id)"] == nil) {
+            return "fav"
+        }
+        return "fav.fill"
     }
     
     func addToFavorite(index: Int) {
