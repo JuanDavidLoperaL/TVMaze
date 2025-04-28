@@ -11,20 +11,37 @@ import SwiftUI
 struct SerieRowView: View {
     
     // MARK: - Private Properties
-    private let serie: SerieDataView
+    private let objectIndex: Int
+    
+    // MARK: - Properties Wrapper
+    @ObservedObject var viewModel: SeriesViewModel
+    @State private var imgName: String = ""
     
     // MARK: - Internal Init
-    init(serie: SerieDataView) {
-        self.serie = serie
+    init(viewModel: SeriesViewModel, objectIndex: Int) {
+        self.viewModel = viewModel
+        self.objectIndex = objectIndex
     }
     
     var body: some View {
         HStack {
-            serieImage(url: serie.image)
-            displayPrincipalInfo(serie: serie)
+            serieImage(url: viewModel.serie(index: objectIndex).image)
+            displayPrincipalInfo(serie: viewModel.serie(index: objectIndex))
+            Spacer()
+            Image(imgName)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 20.0, height: 20.0)
+                .onTapGesture {
+                    viewModel.addToFavorite(index: objectIndex)
+                    imgName = viewModel.imgName(index: objectIndex)
+                }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.bottom)
+        .onAppear {
+            imgName = viewModel.imgName(index: objectIndex)
+        }
     }
     
     func serieImage(url: URL?) -> some View {
@@ -73,5 +90,5 @@ struct SerieRowView: View {
 }
 
 #Preview {
-    SerieRowView(serie: SerieDataView(id: 0, title: "Test", language: "Eng", genres: "Drama, Action", scheduleDays: "Monday", scheduleTime: "22:00", summary: "sumary", image: nil))
+    SerieRowView(viewModel: SeriesViewModel(), objectIndex: 0)
 }
