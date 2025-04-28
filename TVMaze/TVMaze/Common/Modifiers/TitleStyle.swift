@@ -12,6 +12,6 @@ struct TitleStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(.system(size: 14.0, weight: .regular))
-            .foregroundStyle(.black)
+            .foregroundStyle(.primary)
     }
 }
