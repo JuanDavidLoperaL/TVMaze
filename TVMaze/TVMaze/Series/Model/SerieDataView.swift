@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SerieDataView: Hashable {
+struct SerieDataView: Hashable, Codable {
     var id: Int
     var title: String
     var language: String
@@ -16,4 +16,5 @@ struct SerieDataView: Hashable {
     var scheduleTime: String
     var summary: String
     var image: URL?
+    var isFavorite: Bool = false
 }

@@ -60,7 +60,7 @@ struct SeriesView: View {
                             ForEach(viewModel.seriesList.indices, id: \.self) { index in
                                 let serie = viewModel.seriesList[index]
                                 NavigationLink(destination: SerieDetailView(viewModel: SerieDetailViewModel(serieDataView: serie))) {
-                                    SerieRowView(serie: serie)
+                                    SerieRowView(viewModel: viewModel, objectIndex: index)
                                 }
                                 .onAppear {
                                     if index >= viewModel.seriesList.count - 20 {

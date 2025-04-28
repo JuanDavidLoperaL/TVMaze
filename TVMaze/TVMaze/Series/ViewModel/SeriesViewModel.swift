@@ -26,6 +26,8 @@ final class SeriesViewModel: ObservableObject {
     private var originalSerielist: [SerieDataView] = []
     private(set) var hasMoreData: Bool = true
     private var previousSearch: String = ""
+    private let userDefaults = UserDefaults.standard
+    private let key = "favSeries"
     
     // MARK: - Internal Init
     init(api: SeriesAPIProtocol = SeriesAPI()) {
@@ -41,6 +43,14 @@ final class SeriesViewModel: ObservableObject {
 
 // MARK: - Internal Functions
 extension SeriesViewModel {
+    
+    func serie(index: Int) -> SerieDataView {
+        guard seriesList.indices.contains(index) else {
+            return seriesList.last ?? SerieDataView(id: 0, title: "", language: "", genres: "", scheduleDays: "", scheduleTime: "", summary: "")
+        }
+        return seriesList[index]
+    }
+
     func loadSeries() {
         guard hasMoreData else {
             return
@@ -76,6 +86,8 @@ extension SeriesViewModel {
                     self?.seriesList.append(serieDataView)
                 }
                 self?.originalSerielist = self?.seriesList ?? []
+                self?.sortSeriesList()
+                self?.updateFavoritesStatus()
             }
             .store(in: &cancellables)
     }
@@ -106,13 +118,87 @@ extension SeriesViewModel {
                                   summary: serie.show.summary,
                                   image: self?.getImageURL(from: serie.show))
                 })
+                self?.sortSeriesList()
+                self?.updateFavoritesStatus()
             }
             .store(in: &cancellables)
+    }
+    
+    func buttonTitle(index: Int) -> String {
+        let isFavorite = seriesList[index].isFavorite
+        return isFavorite ? "Delete\nFavorite" : "Add Favorite"
+    }
+    
+    func imgName(index: Int) -> String {
+        let isFavorite = seriesList[index].isFavorite
+        return isFavorite ? "fav.fill" : "fav"
+    }
+    
+    func addToFavorite(index: Int) {
+        seriesList[index].isFavorite.toggle()
+        if !seriesList[index].isFavorite {
+            removeFromFavorites(serieID: seriesList[index].id)
+            return
+        }
+        let serie = seriesList[index]
+        
+        var favDict: [String: Data] = userDefaults.dictionary(forKey: key) as? [String: Data] ?? [:]
+        
+        do {
+            let encodedSerie = try JSONEncoder().encode(serie)
+            favDict["\(serie.id)"] = encodedSerie
+            userDefaults.set(favDict, forKey: key)
+            updateFavoritesStatus()
+            sortSeriesList()
+            print("✅ Serie updated in favorites")
+        } catch {
+            print("❌ Error saving serie in favorites: \(error.localizedDescription)")
+        }
+    }
+    
+    func removeFromFavorites(serieID: Int) {
+        var favDict: [String: Data] = userDefaults.dictionary(forKey: key) as? [String: Data] ?? [:]
+        
+        if favDict.removeValue(forKey: "\(serieID)") != nil {
+            userDefaults.set(favDict, forKey: key)
+            updateFavoritesStatus()
+            sortSeriesList()
+            print("🗑️ Serie con ID \(serieID) eliminada de favoritos")
+        } else {
+            print("⚠️ Serie con ID \(serieID) no estaba en favoritos")
+        }
+    }
+    
+    func loadFavorites() {
+        if let favDict = userDefaults.dictionary(forKey: key) as? [String: Data] {
+            for (id, data) in favDict {
+                do {
+                    let serie = try JSONDecoder().decode(SerieDataView.self, from: data)
+                    print("🔹 Loading series fav: \(serie.title)")
+                } catch {
+                    print("❌ Error loading favorites: \(error.localizedDescription)")
+                }
+            }
+        }
     }
 }
 
 // MARK: - Private Functions
 private extension SeriesViewModel {
+    private func sortSeriesList() {
+        seriesList.sort { $0.title.lowercased() < $1.title.lowercased() }
+    }
+    private func updateFavoritesStatus() {
+        for (index, serie) in seriesList.enumerated() {
+            let favDict: [String: Data] = userDefaults.dictionary(forKey: key) as? [String: Data] ?? [:]
+            if let _ = favDict["\(serie.id)"] {
+                seriesList[index].isFavorite = true
+            } else {
+                seriesList[index].isFavorite = false
+            }
+        }
+    }
+    
     private func getImageURL(from serie: Serie) -> URL? {
         if let imgURL = URL(string: serie.image?.medium ?? "") {
             return imgURL
@@ -143,6 +229,7 @@ private extension SeriesViewModel {
                         self.loadSeriesByName()
                     }
                 }
+                self.sortSeriesList()
             }
             .store(in: &cancellables)
     }
